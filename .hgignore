@@ -25,3 +25,6 @@ jcov2/*
 test/lib/*.jar
 test/script/external/*
 .project
+NashornProfile.txt
+kaziranga/kaziranga-core/target
+kaziranga/kaziranga-test-project/target

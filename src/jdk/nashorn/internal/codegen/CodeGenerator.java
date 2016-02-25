@@ -1254,6 +1254,9 @@ final class CodeGenerator extends NodeOperatorVisitor<CodeGeneratorLexicalContex
 
     @Override
     public boolean enterBlock(final Block block) {
+        // Inject a call to the Kaziranga quota checker
+        method.invokestatic("com/github/malaporte/kaziranga/QuotaEnforcer", "check", "()V");
+
         final Label entryLabel = block.getEntryLabel();
         if (entryLabel.isBreakTarget()) {
             // Entry label is a break target only for an inlined finally block.
