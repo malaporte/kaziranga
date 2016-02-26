@@ -37,21 +37,6 @@ public class QuotaEnforcer
         currentWatchDog.set(null);
     }
 
-    public static <T> T withQuota(ResourceQuota quota, QuotaThunk<T> thunk)
-    {
-        register(quota);
-
-        T ret;
-
-        try {
-            ret = thunk.execute();
-        } finally {
-            unregister();
-        }
-
-        return ret;
-    }
-
     private static ResourceQuota.WatchDog getCurrentWatchDog()
     {
         return currentWatchDog.get();

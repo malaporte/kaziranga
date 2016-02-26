@@ -17,6 +17,11 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.19.1</version>
+      </plugin>
+      <plugin>
         <groupId>com.googlecode.addjars-maven-plugin</groupId>
         <artifactId>addjars-maven-plugin</artifactId>
         <version>1.0.5</version>

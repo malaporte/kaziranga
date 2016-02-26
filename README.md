@@ -1,4 +1,4 @@
-# Kaziranga, a fence around your Nashorn
+# Kaziranga, a fence for your Nashorn
 
 Kaziranga is a fork of the Nashorn JavaScript engine that enables sandboxing JavaScript execution and enforcing resource quotas (CPU + memory).
 

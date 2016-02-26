@@ -11,19 +11,21 @@ public class ResourceQuota
     private static final ThreadMXBean threadMxBean = ManagementFactory.getThreadMXBean();
     private static final ThreadMXBean sunThreadMxBean = threadMxBean instanceof com.sun.management.ThreadMXBean ? (com.sun.management.ThreadMXBean) threadMxBean
                                                                                                                 : null;
-    private AtomicLong cpuTime;
+    private long initialMemoryQuota;
+    private AtomicLong cpuTimeInNanoseconds;
     private AtomicLong memoryUsage;
     private final boolean monitorCpuTime;
     private final boolean monitorMemoryUsage;
 
-    public ResourceQuota(long cpuTime,
-                         long memoryUsage)
+    public ResourceQuota(long cpuTimeInMilliseconds,
+                         long memoryUsageInBytes)
     {
-        this.cpuTime = new AtomicLong(cpuTime);
-        this.memoryUsage = new AtomicLong(memoryUsage);
+        this.cpuTimeInNanoseconds = new AtomicLong(cpuTimeInMilliseconds * 1000000);
+        this.initialMemoryQuota = memoryUsageInBytes;
+        this.memoryUsage = new AtomicLong(memoryUsageInBytes);
 
-        monitorCpuTime = cpuTime > 0;
-        monitorMemoryUsage = memoryUsage > 0;
+        monitorCpuTime = cpuTimeInMilliseconds > 0;
+        monitorMemoryUsage = memoryUsageInBytes > 0;
 
         if (monitorMemoryUsage && sunThreadMxBean == null) {
             throw new UnsupportedOperationException("Memory quota monitoring is not supported on this JVM implementation!");
@@ -70,8 +72,8 @@ public class ResourceQuota
             long delta = current - lastCpuTime;
             lastCpuTime = current;
 
-            if (cpuTime.addAndGet(-delta) < 0) {
-                throw new ExceededQuotaException("CPU usage has exceeded the allowed quota");
+            if (cpuTimeInNanoseconds.addAndGet(-delta) < 0) {
+                throw new CpuExceededQuotaException("CPU usage has exceeded the allowed quota");
             }
         }
 
@@ -82,13 +84,14 @@ public class ResourceQuota
             lastAllocatedBytes = current;
 
             if (memoryUsage.addAndGet(-delta) < 0) {
-                throw new ExceededQuotaException("Memory usage has exceeded the allowed quota");
+                throw new MemoryExceededQuotaException("Memory usage has exceeded the allowed quota of " + (initialMemoryQuota / (1024 * 1024)) + " megs");
             }
         }
     }
 
     private static long readCpuTime(long threadId)
     {
+        // We must convert from nanoseconds to milliseconds
         return threadMxBean.getThreadCpuTime(threadId);
     }
 
