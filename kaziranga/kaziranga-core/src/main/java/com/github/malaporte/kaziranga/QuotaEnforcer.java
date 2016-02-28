@@ -19,6 +19,14 @@ public class QuotaEnforcer
         watchDog.check();
     }
 
+    public static void checkException(Throwable ex) throws Throwable
+    {
+        // Rethrow any Kaziranga exception to prevent JS code from ignoring quota errors
+        if (ex instanceof KazirangaException) {
+            throw ex;
+        }
+    }
+
     public static void register(ResourceQuota quota)
     {
         if (getCurrentWatchDog() != null) {

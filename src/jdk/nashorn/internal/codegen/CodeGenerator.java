@@ -215,6 +215,9 @@ final class CodeGenerator extends NodeOperatorVisitor<CodeGeneratorLexicalContex
 
     private static final Integer INT_ZERO = Integer.valueOf(0);
 
+    /** Whether we're running as Kaziranga script engine */
+    private final boolean kaziranga = getClass().getName().contains(".kaziranga.");
+
     /** Constant data & installation. The only reason the compiler keeps this is because it is assigned
      *  by reflection in class installation */
     private final Compiler compiler;
@@ -1254,8 +1257,10 @@ final class CodeGenerator extends NodeOperatorVisitor<CodeGeneratorLexicalContex
 
     @Override
     public boolean enterBlock(final Block block) {
-        // Inject a call to the Kaziranga quota checker
-        method.invokestatic("com/github/malaporte/kaziranga/QuotaEnforcer", "check", "()V");
+        if (kaziranga) {
+            // Inject a call to the Kaziranga quota checker
+            method.invokestatic("com/github/malaporte/kaziranga/QuotaEnforcer", "check", "()V");
+        }
 
         final Label entryLabel = block.getEntryLabel();
         if (entryLabel.isBreakTarget()) {
@@ -3206,6 +3211,13 @@ final class CodeGenerator extends NodeOperatorVisitor<CodeGeneratorLexicalContex
 
 
         method._catch(recovery);
+
+        if (kaziranga) {
+            // Inject a call to the Kaziranga exception checker
+            method.dup();
+            method.invokestatic("com/github/malaporte/kaziranga/QuotaEnforcer", "checkException", methodDescriptor(void.class, Throwable.class));
+        }
+
         method.store(vmException, EXCEPTION_TYPE);
 
         final int catchBlockCount = catchBlocks.size();
@@ -4559,7 +4571,11 @@ final class CodeGenerator extends NodeOperatorVisitor<CodeGeneratorLexicalContex
 
     private MethodEmitter globalAllocateArray(final ArrayType type) {
         //make sure the native array is treated as an array type
-        return method.invokestatic(GLOBAL_OBJECT, "allocate", "(" + type.getDescriptor() + ")Ljdk/nashorn/internal/objects/NativeArray;");
+        if (kaziranga) {
+            return method.invokestatic(GLOBAL_OBJECT, "allocate", "(" + type.getDescriptor() + ")Lcom/github/malaporte/kaziranga/jdk/nashorn/internal/objects/NativeArray;");
+        } else {
+            return method.invokestatic(GLOBAL_OBJECT, "allocate", "(" + type.getDescriptor() + ")Ljdk/nashorn/internal/objects/NativeArray;");
+        }
     }
 
     private MethodEmitter globalIsEval() {

@@ -15,7 +15,6 @@ public class ScriptEngineTest
         QuotaEnforcer.register(new ResourceQuota(0, 0));
         try {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("kaziranga");
-            engine.eval(new InputStreamReader(getClass().getResourceAsStream("jquery.js")));
             engine.eval(new InputStreamReader(getClass().getResourceAsStream("underscore.js")));
         } finally {
             QuotaEnforcer.unregister();

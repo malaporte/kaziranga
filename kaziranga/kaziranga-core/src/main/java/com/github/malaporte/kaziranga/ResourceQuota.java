@@ -45,13 +45,28 @@ public class ResourceQuota
         private static final int CHECK_EVERY = 25;
 
         private long threadId = Thread.currentThread().getId();
-        private long lastCpuTime = readCpuTime(threadId);
-        private long lastAllocatedBytes = readAllocatedBytes(threadId);
+        private boolean initialized = false;
+        private long lastCpuTime;
+        private long lastAllocatedBytes;
         private int cycle = 0;
 
         public void check()
         {
             assert (Thread.currentThread().getId() == threadId);
+
+            if (!initialized) {
+                // We read the initial values for CPU and memory only at the first check,
+                // so as to avoid including resource consumption from script compilation.
+                if (monitorCpuTime) {
+                    lastCpuTime = readCpuTime(threadId);
+                }
+                if (monitorMemoryUsage) {
+                    lastAllocatedBytes = readAllocatedBytes(threadId);
+                }
+
+                initialized = true;
+                return;
+            }
 
             if (++cycle % CHECK_EVERY != 0) {
                 return;

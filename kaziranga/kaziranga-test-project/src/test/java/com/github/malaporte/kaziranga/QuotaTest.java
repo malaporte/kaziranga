@@ -57,7 +57,7 @@ public class QuotaTest {
     {
         ScriptEngine engine = new ScriptEngineManager().getEngineByName("kaziranga");
 
-        ResourceQuota quota = new ResourceQuota(0, 50 * 1024 * 1024);
+        ResourceQuota quota = new ResourceQuota(0, 2 * 1024 * 1024);
         QuotaEnforcer.register(quota);
 
         try {
@@ -86,7 +86,7 @@ public class QuotaTest {
     {
         ScriptEngine engine = new ScriptEngineManager().getEngineByName("kaziranga");
 
-        ResourceQuota quota = new ResourceQuota(0, 50 * 1024 * 1024);
+        ResourceQuota quota = new ResourceQuota(0, 5 * 1024 * 1024);
         QuotaEnforcer.register(quota);
 
         try {
@@ -103,8 +103,6 @@ public class QuotaTest {
     public void cpuQuotasAreNotTriggeringForOKCode()
     {
         shouldNotExceedQuota("for (var i = 0; i < 1000; ++i) { var j = i + 10; }");
-        shouldNotExceedQuota(getClass().getResourceAsStream("jquery.js"));
-        shouldNotExceedQuota(getClass().getResourceAsStream("underscore.js"));
     }
 
     @Test
@@ -117,13 +115,12 @@ public class QuotaTest {
     @Test
     public void memoryQuotasCannotBeExceededWithBigAllocations()
     {
-        shouldExceedMemoryQuota("var strs = []; for (var i = 0; i < 1000; ++i) { strs.push['foobar' + i]; }");
+        shouldExceedMemoryQuota("var strs = []; for (var i = 0; i < 100000; ++i) { strs.push['foobar' + i]; }");
     }
 
     @Test
     public void quotasCannotBeBypassedByCatchingTheException()
     {
-        fail("This bypasses the quotas. How to fix?");
         shouldExceedCpuQuota(getClass().getResourceAsStream("TryToCatchException.js"));
     }
 }

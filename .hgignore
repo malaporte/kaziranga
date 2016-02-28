@@ -13,6 +13,7 @@ webrev.zip
 *.clazz
 *.log
 *.orig
+*.iml
 genfiles.properties
 hotspot.log
 .DS_Store*
