@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.logging.Level;
+
+import jdk.nashorn.Kaziranga;
 import jdk.nashorn.internal.codegen.Namespace;
 import jdk.nashorn.internal.runtime.linker.NashornCallSiteDescriptor;
 import jdk.nashorn.internal.runtime.options.KeyValueOption;
@@ -240,7 +242,7 @@ public final class ScriptEnvironment {
         _lazy_compilation     = options.getBoolean("lazy.compilation");
         _optimistic_types     = options.getBoolean("optimistic.types");
         _loader_per_compile   = options.getBoolean("loader.per.compile");
-        _no_java              = options.getBoolean("no.java");
+        _no_java              = options.getBoolean("no.java") || Kaziranga.isKaziranga();
         _no_syntax_extensions = options.getBoolean("no.syntax.extensions");
         _no_typed_arrays      = options.getBoolean("no.typed.arrays");
         _parse_only           = options.getBoolean("parse.only");

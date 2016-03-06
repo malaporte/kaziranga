@@ -11,7 +11,12 @@ import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 public class KazirangaScriptEngineFactory implements ScriptEngineFactory
 {
+    private static final List<String> names;
     private NashornScriptEngineFactory nashorn = new NashornScriptEngineFactory();
+
+    static {
+        names = immutableList("kaziranga", "Kaziranga");
+    }
 
     @Override
     public String getEngineName()
@@ -90,12 +95,6 @@ public class KazirangaScriptEngineFactory implements ScriptEngineFactory
     public ScriptEngine getScriptEngine()
     {
         return nashorn.getScriptEngine();
-    }
-
-    private static final List<String> names;
-
-    static {
-        names = immutableList("kaziranga", "Kaziranga");
     }
 
     private static List<String> immutableList(final String... elements)

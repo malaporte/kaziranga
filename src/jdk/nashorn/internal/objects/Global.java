@@ -50,6 +50,7 @@ import javax.script.ScriptEngine;
 import jdk.internal.dynalink.CallSiteDescriptor;
 import jdk.internal.dynalink.linker.GuardedInvocation;
 import jdk.internal.dynalink.linker.LinkRequest;
+import jdk.nashorn.Kaziranga;
 import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.internal.lookup.Lookup;
@@ -312,6 +313,9 @@ public final class Global extends Scope {
      */
     @Getter(name = "JSAdapter", attributes = Attribute.NOT_ENUMERABLE)
     public static Object getJSAdapter(final Object self) {
+        if (Kaziranga.isKaziranga()) {
+            return null;
+        }
         final Global global = Global.instanceFrom(self);
         if (global.jsadapter == LAZY_SENTINEL) {
             global.jsadapter = global.getBuiltinJSAdapter();
@@ -326,6 +330,7 @@ public final class Global extends Scope {
      */
     @Setter(name = "JSAdapter", attributes = Attribute.NOT_ENUMERABLE)
     public static void setJSAdapter(final Object self, final Object value) {
+        Kaziranga.notAvailableInKaziranga();
         final Global global = Global.instanceFrom(self);
         global.jsadapter = value;
     }
@@ -1532,6 +1537,7 @@ public final class Global extends Scope {
      * @throws IOException if source could not be read
      */
     public static Object load(final Object self, final Object source) throws IOException {
+        Kaziranga.notAvailableInKaziranga();
         final Global global = Global.instanceFrom(self);
         return global.getContext().load(self, source);
     }
@@ -1551,6 +1557,7 @@ public final class Global extends Scope {
      * @throws IOException if source could not be read
      */
     public static Object loadWithNewGlobal(final Object self, final Object...args) throws IOException {
+        Kaziranga.notAvailableInKaziranga();
         final Global global = Global.instanceFrom(self);
         final int length = args.length;
         final boolean hasArgs = 0 < length;
@@ -1569,6 +1576,7 @@ public final class Global extends Scope {
      * @return undefined (will never be reached)
      */
     public static Object exit(final Object self, final Object code) {
+        Kaziranga.notAvailableInKaziranga();
         System.exit(JSType.toInt32(code));
         return UNDEFINED;
     }
@@ -2543,11 +2551,14 @@ public final class Global extends Scope {
         this.decodeURIComponent = ScriptFunctionImpl.makeFunction("decodeURIComponent", GlobalFunctions.DECODE_URICOMPONENT);
         this.escape             = ScriptFunctionImpl.makeFunction("escape",     GlobalFunctions.ESCAPE);
         this.unescape           = ScriptFunctionImpl.makeFunction("unescape",   GlobalFunctions.UNESCAPE);
-        this.print              = ScriptFunctionImpl.makeFunction("print",      env._print_no_newline ? PRINT : PRINTLN);
-        this.load               = ScriptFunctionImpl.makeFunction("load",       LOAD);
-        this.loadWithNewGlobal  = ScriptFunctionImpl.makeFunction("loadWithNewGlobal", LOAD_WITH_NEW_GLOBAL);
-        this.exit               = ScriptFunctionImpl.makeFunction("exit",       EXIT);
-        this.quit               = ScriptFunctionImpl.makeFunction("quit",       EXIT);
+
+        if (!Kaziranga.isKaziranga()) {
+            this.print = ScriptFunctionImpl.makeFunction("print", env._print_no_newline ? PRINT : PRINTLN);
+            this.load = ScriptFunctionImpl.makeFunction("load", LOAD);
+            this.loadWithNewGlobal = ScriptFunctionImpl.makeFunction("loadWithNewGlobal", LOAD_WITH_NEW_GLOBAL);
+            this.exit = ScriptFunctionImpl.makeFunction("exit", EXIT);
+            this.quit = ScriptFunctionImpl.makeFunction("quit", EXIT);
+        }
 
         // built-in constructors
         this.builtinArray     = initConstructorAndSwitchPoint("Array", ScriptFunction.class);
@@ -2569,7 +2580,7 @@ public final class Global extends Scope {
         initErrorObjects();
 
         // java access
-        if (! env._no_java) {
+        if (! env._no_java && !Kaziranga.isKaziranga()) {
             this.javaApi = LAZY_SENTINEL;
             this.javaImporter = LAZY_SENTINEL;
             initJavaAccess();
@@ -2617,7 +2628,9 @@ public final class Global extends Scope {
         copyBuiltins();
 
         // expose script (command line) arguments as "arguments" property of global
-        arguments = wrapAsObject(env.getArguments().toArray());
+        if (!Kaziranga.isKaziranga()) {
+            arguments = wrapAsObject(env.getArguments().toArray());
+        }
         if (env._scripting) {
             // synonym for "arguments" in scripting mode
             addOwnProperty("$ARG", Attribute.NOT_ENUMERABLE, arguments);
