@@ -1,13 +1,15 @@
 package com.github.malaporte.kaziranga;
 
-import static org.testng.Assert.*;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-import jdk.nashorn.internal.runtime.Undefined;
-import org.testng.annotations.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 public class SandboxTest
 {
@@ -17,12 +19,14 @@ public class SandboxTest
     }
 
     @BeforeMethod
-    public void beforeTest() {
+    public void beforeTest()
+    {
         QuotaEnforcer.register(new ResourceQuota(0, 0));
     }
 
     @AfterMethod
-    public void afterTest() {
+    public void afterTest()
+    {
         QuotaEnforcer.unregister();
     }
 
@@ -74,10 +78,16 @@ public class SandboxTest
         assertNull(ret);
     }
 
-    @Test(expectedExceptions = ScriptException.class)
-    public void javaScriptCodeCannotAccessGetClassMethod() throws Exception
+    @Test(expectedExceptions = Error.class)
+    public void javaScriptCodeCannotAccessGetClassMethodUsingStraightInvoke() throws Exception
     {
-        Object ret = createEngine().eval("'foo'.getClass();");
+        createEngine().eval("'foo'.getClass();");
+    }
+
+    @Test(expectedExceptions = Error.class)
+    public void javaScriptCodeCannotAccessGetClassMethodUsingIndexedInvoke() throws Exception
+    {
+        createEngine().eval("'foo'['getClass']();");
     }
 
     @Test(expectedExceptions = ScriptException.class)

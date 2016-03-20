@@ -25,6 +25,7 @@
 
 package jdk.nashorn.internal.codegen;
 
+import jdk.nashorn.Kaziranga;
 import static jdk.internal.org.objectweb.asm.Opcodes.ATHROW;
 import static jdk.internal.org.objectweb.asm.Opcodes.CHECKCAST;
 import static jdk.internal.org.objectweb.asm.Opcodes.DUP2;
@@ -2179,6 +2180,10 @@ public class MethodEmitter {
      * @return the method emitter
      */
     MethodEmitter dynamicGet(final Type valueType, final String name, final int flags, final boolean isMethod, final boolean isIndex) {
+        if (Kaziranga.isRestrictedSymbolName(name)) {
+            invokestatic("com/github/malaporte/kaziranga/SandboxEnforcer", "notAvailableInKaziranga", methodDescriptor(void.class));
+        }
+
         if (name.length() > LARGE_STRING_THRESHOLD) { // use getIndex for extremely long names
             return load(name).dynamicGetIndex(valueType, flags, isMethod);
         }
